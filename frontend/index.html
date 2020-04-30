@@ -30,16 +30,20 @@
   <hr/>
   <div style="margin-bottom: 2rem;">
     <!-- Button trigger nuevo producto -->
-    <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#modalNuevoProducto">
+    <button type="button" class="btn btn-success btn-lg" data-toggle="modal" data-target="#modalNuevoProducto">
       Añadir producto
     </button>
     <!-- Button trigger nuevo pedido -->
     <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#modalNuevoPedido">
       Añadir pedido
     </button>
+    <!-- Button trigger nuevo pedido -->
+    <button type="button" class="btn btn-warning btn-lg" data-toggle="modal" data-target="#modalClientes">
+      Clientes
+    </button>
   </div>
   <div>
-    <table id="example" class="display" width="100%"></table>
+    <table id="tablaPedidos" class="display" width="100%"></table>
   </div>
 </div>
 
@@ -107,6 +111,58 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
         <button type="button" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal clientes -->
+<div class="modal fade" id="modalClientes" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+            aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="modalClientesLabel">Listado de clientes</h4>
+      </div>
+      <div class="modal-body">
+        <form id="newClienteForm" class="form">
+          <div class="form-group">
+            <label for="newClienteName">Nombre</label>
+            <input
+                type="text"
+                class="form-control"
+                id="newClienteName"
+                placeholder="Nombre del cliente..."
+            />
+          </div>
+          <div class="form-group">
+            <label for="newClienteTlf">Teléfono</label>
+            <input
+                type="text"
+                class="form-control"
+                id="newClienteTlf"
+                placeholder="Teléfono de contacto..."
+            />
+          </div>
+          <div class="form-group" style="margin-top: 2rem;">
+            <label for="newClienteDireccion">Dirección</label>
+            <input
+                type="text"
+                class="form-control"
+                id="newClienteDireccion"
+                placeholder="Dirección de entrega..."
+            />
+          </div>
+          <div style="text-align: center;" style="margin-bottom: 2rem;">
+            <button type="button" class="btn btn-primary">Guardar cliente</button>
+          </div>
+        </form>
+        <hr>
+        <table id="tablaClientes" class="display" width="100%"></table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
       </div>
     </div>
   </div>
