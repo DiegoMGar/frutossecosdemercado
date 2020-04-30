@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <title>Title</title>
-  <script src="js/jQuery-3.5.0.min.js"></script>
+  <script src="jquery-3.5.0/jQuery-3.5.0.min.js"></script>
   <!-- Latest compiled and minified CSS -->
   <link rel="stylesheet" href="bootstrap-3.3.7-dist/css/bootstrap.min.css"/>
   <!-- Optional theme -->
@@ -23,57 +23,36 @@
 
   <link href="select2/select2.min.css" rel="stylesheet"/>
   <script src="select2/select2.min.js"></script>
+  <script src="sweetalert2/sweetalert2.js"></script>
 </head>
-<body>
+<body style="font-size: 1.7rem;">
 <div class="container">
-  <h1>Frutos Secos de Mercado - v1.0.0</h1>
+  <h1>Frutos Secos de Mercado <small>v1.0.0</small></h1>
   <hr/>
   <div style="margin-bottom: 2rem;">
-    <!-- Button trigger nuevo producto -->
-    <button type="button" class="btn btn-success btn-lg" data-toggle="modal" data-target="#modalNuevoProducto">
-      Añadir producto
-    </button>
     <!-- Button trigger nuevo pedido -->
     <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#modalNuevoPedido">
       Añadir pedido
     </button>
-    <!-- Button trigger nuevo pedido -->
+
+    <!-- Button trigger productos -->
+    <button type="button" class="btn btn-success btn-lg" data-toggle="modal" data-target="#modalNuevoProducto">
+      Productos
+    </button>
+
+    <!-- Button trigger clientes -->
     <button type="button" class="btn btn-warning btn-lg" data-toggle="modal" data-target="#modalClientes">
       Clientes
+    </button>
+
+    <!-- Button trigger resumen -->
+    <button type="button" class="btn btn-info btn-lg" id="resumenButton" data-toggle="modal"
+            data-target="#modalResumen">
+      RESUMEN
     </button>
   </div>
   <div>
     <table id="tablaPedidos" class="display" width="100%"></table>
-  </div>
-</div>
-
-<!-- Modal nuevo producto -->
-<div class="modal fade" id="modalNuevoProducto" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-            aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title" id="modalNuevoProductoLabel">Modal title</h4>
-      </div>
-      <div class="modal-body">
-        <form id="newProductForm" class="form-inline">
-          <div class="form-group">
-            <label for="newProduct">Nuevo producto</label>
-            <input
-                type="text"
-                class="form-control"
-                id="newProduct"
-                placeholder="Nombre del producto..."
-            />
-          </div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary">Save changes</button>
-      </div>
-    </div>
   </div>
 </div>
 
@@ -84,33 +63,76 @@
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
             aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title" id="modalNuevoPedidoLabel">Modal title</h4>
+        <h4 class="modal-title" id="modalNuevoPedidoLabel">Creación de pedido</h4>
       </div>
       <div class="modal-body">
-        <form id="newRequestForm" class="form-inline">
+        <form id="newRequestForm" class="form">
           <div class="form-group">
-            <label for="newRequestName">Nuevo pedido</label>
-            <input
-                type="text"
-                class="form-control"
-                id="newRequestName"
-                placeholder="Nombre del producto..."
-            />
+            <label for="newRequestClientSelect">Cliente</label>
+            <select class="form-control select2" id="newRequestClientSelect" name="newRequestClientSelect">
+              <option value="0" disabled selected>-- Selecciona un cliente--</option>
+            </select>
           </div>
           <div class="form-group">
-            <label for="newRequestQuantity">Peso</label>
+            <label for="newRequestProductSelect">Producto</label>
+            <select class="form-control select2" id="newRequestProductSelect" name="newRequestProductSelect">
+              <option value="0" disabled selected>-- Selecciona un producto--</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="newRequestQuantity">Cantidad</label>
             <input
                 type="text"
                 class="form-control"
                 id="newRequestQuantity"
-                placeholder="Peso del pedido..."
+                placeholder="Cantidad del pedido..."
             />
           </div>
         </form>
+        <button type="button" class="btn btn-primary" id="newRequestAddButton">Guardar pedido</button>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal nuevo producto -->
+<div class="modal fade" id="modalNuevoProducto" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+            aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="modalNuevoProductoLabel">Gestión de productos</h4>
+      </div>
+      <div class="modal-body">
+        <form id="newProductForm" class="form">
+          <div class="form-group">
+            <label for="newProduct">Nuevo producto</label>
+            <input
+                type="text"
+                class="form-control"
+                id="newProduct"
+                placeholder="Nombre del producto..."
+            />
+          </div>
+          <div class="form-group">
+            <label for="newProductMedidaSelect">Unidad de medida</label>
+            <select id="newProductMedidaSelect">
+              <option selected disabled value="0">-- Selecciona una medida --</option>
+              <option value="Gramos">Gramos</option>
+              <option value="Kilos">Kilogramos</option>
+            </select>
+          </div>
+          <button type="button" class="btn btn-primary" id="newProductAddButton">Añadir producto</button>
+        </form>
+        <hr>
+        <table id="tablaProductos" class="display" width="100%"></table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
       </div>
     </div>
   </div>
@@ -154,12 +176,29 @@
                 placeholder="Dirección de entrega..."
             />
           </div>
-          <div style="text-align: center;" style="margin-bottom: 2rem;">
-            <button type="button" class="btn btn-primary">Guardar cliente</button>
-          </div>
+          <button type="button" class="btn btn-primary" id="newClienteAddButton">Guardar cliente</button>
         </form>
         <hr>
         <table id="tablaClientes" class="display" width="100%"></table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal resumen -->
+<div class="modal fade" id="modalResumen" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+            aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="modalResumenLabel">Resumen para la compra</h4>
+      </div>
+      <div class="modal-body">
+        <table id="tablaResumen" class="display" width="100%"></table>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>

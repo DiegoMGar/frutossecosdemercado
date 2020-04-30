@@ -6,10 +6,15 @@ document.getElementById('newRequestForm').onsubmit = ev => {
 };
 
 class Cliente {
-  constructor(nombre = null, telefono = null, direccion = null) {
+  constructor(nombre = null, telefono = null, direccion = null, id) {
     this.nombre = nombre;
     this.telefono = telefono;
     this.direccion = direccion;
+    this.id = id || 0;
+  }
+
+  posIdInPlain() {
+    return this.plain().length - 1;
   }
 
   plain() {
@@ -17,45 +22,110 @@ class Cliente {
       this.nombre,
       this.telefono,
       this.direccion,
+      this.id,
+    ];
+  }
+}
+
+class Producto {
+  constructor(nombre, medida, id) {
+    this.nombre = nombre || null;
+    this.medida = medida || 'Kilogramos';
+    this.id = id || 0;
+  }
+
+  posIdInPlain() {
+    return this.plain().length - 1;
+  }
+
+  plain() {
+    return [
+      this.nombre,
+      this.medida,
+      this.id,
     ];
   }
 }
 
 class Pedido {
-  constructor(producto, cantidad, cliente) {
-    this.producto = producto || null;
+  constructor(producto, cantidad, cliente, id) {
+    this.producto = producto || new Producto();
     this.cantidad = cantidad || null;
     this.cliente = cliente || new Cliente();
-    this.id = null;
+    this.id = id || 0;
+  }
+
+  posIdInPlain() {
+    return this.plain().length - 1;
   }
 
   plain() {
     return [
-      this.producto,
-      this.cantidad,
+      this.producto.nombre,
+      this.cantidad + ' ' + this.producto.medida,
       ...this.cliente.plain(),
+      this.id,
     ];
   }
 }
 
 class Tienda {
   constructor() {
-    this.datatableId = '#tablaPedidos';
+    this.tablaPedidos = '#tablaPedidos';
+    this.tablaClientes = '#tablaClientes';
+    this.tablaProductos = '#tablaProductos';
     this.productos = [];
-    this.pedidos = [];
     this.clientes = [];
+    this.pedidos = [];
+    this.resumido = false;
   }
 
   addPedido(p) {
     p.id = this.pedidos.length;
     this.pedidos.push(p);
+    this.save();
   }
 
-  addCliente(p) {
-    this.clientes.push(p);
+  removePedido(row) {
+    console.log('Borrando: ', row);
+    this.pedidos.splice(row, 1);
+    this.pedidos.forEach((pedido, i) => {
+      pedido.id = i;
+    });
+    this.save();
   }
 
-  dataSet() {
+  addCliente(c) {
+    c.id = this.clientes.length;
+    this.clientes.push(c);
+    this.save();
+  }
+
+  removeCliente(row) {
+    console.log('Borrando: ', row);
+    this.clientes.splice(row, 1);
+    this.clientes.forEach((cliente, i) => {
+      cliente.id = i;
+    });
+    this.save();
+  }
+
+  addProducto(p) {
+    p.id = this.productos.length;
+    this.productos.push(p);
+    this.save();
+  }
+
+  removeProducto(row) {
+    console.log('Borrando: ', row);
+    this.productos.splice(row, 1);
+    this.productos.forEach((producto, i) => {
+      producto.id = i;
+    });
+    this.save();
+  }
+
+  pedidosDataset() {
     return this.pedidos.map(pedido => pedido.plain());
   }
 
@@ -63,12 +133,17 @@ class Tienda {
     return this.clientes.map(c => c.plain());
   }
 
-  printDatatable() {
-    const table = $(this.datatableId).DataTable({
+  productosDataSet() {
+    return this.productos.map(p => p.plain());
+  }
+
+  printPedidos() {
+    const table = $(this.tablaPedidos).DataTable({
+      paging: false,
       language: {
         url: 'language/datatable.json',
       },
-      data: this.dataSet(),
+      data: this.pedidosDataset(),
       columns: [
         { title: 'Producto' },
         { title: 'Cantidad' },
@@ -79,62 +154,281 @@ class Tienda {
           title: 'Accion',
           data: null,
           defaultContent:
-            '<button class="btn btn-default">Comprado</button>',
+            '<button class="btn btn-sm btn-default">Ocultar</button>',
         },
       ],
     });
     const self = this;
-    $(this.datatableId + ' tbody').on('click', 'button', function() {
-      const row = $(this).parents('tr')[0].rowIndex;
-      self.remove(row - 1);
+    $(this.tablaPedidos + ' tbody').on('click', 'button', function() {
+      const data = table.row($(this).parents('tr')).data();
+      self.removePedido(data[new Pedido().posIdInPlain()]);
+      self.rePrintPedidos();
     });
   }
 
-  remove(row) {
-    console.log('Borrando: ', row);
-    this.pedidos.splice(row, 1);
-    this.reprintDatatable();
+  rePrintPedidos() {
+    $(this.tablaPedidos).DataTable().clear().destroy();
+    $(this.tablaPedidos + ' tbody').off('click', 'button');
+    this.printPedidos();
   }
 
-  reprintDatatable() {
-    $(this.datatableId).DataTable().clear().destroy();
-    $(this.datatableId + ' tbody').off('click', 'button');
-    this.printDatatable();
+  printClientes() {
+    const table = $(this.tablaClientes).DataTable({
+      paging: false,
+      language: {
+        url: 'language/datatable.json',
+      },
+      data: this.clientesDataSet(),
+      columns: [
+        { title: 'Nombre' },
+        { title: 'Teléfono' },
+        { title: 'Dirección' },
+        {
+          title: 'Accion',
+          data: null,
+          defaultContent:
+            '<button class="btn btn-sm btn-danger">Borrar</button>',
+        },
+      ],
+    });
+    const self = this;
+    $(this.tablaClientes + ' tbody').on('click', 'button', function() {
+      const data = table.row($(this).parents('tr')).data();
+      self.removeCliente(data[new Cliente().posIdInPlain()]);
+      self.rePrintClientes();
+    });
+  }
+
+  rePrintClientes() {
+    $(this.tablaClientes).DataTable().clear().destroy();
+    $(this.tablaClientes + ' tbody').off('click', 'button');
+    this.printClientes();
+  }
+
+  printProductos() {
+    var table = $(this.tablaProductos).DataTable({
+      paging: false,
+      language: {
+        url: 'language/datatable.json',
+      },
+      data: this.productosDataSet(),
+      columns: [
+        { title: 'Nombre' },
+        { title: 'Medida' },
+        {
+          title: 'Accion',
+          data: null,
+          defaultContent:
+            '<button class="btn btn-sm btn-danger">Borrar</button>',
+        },
+      ],
+    });
+    const self = this;
+    $(this.tablaProductos + ' tbody').on('click', 'button', function() {
+      const data = table.row($(this).parents('tr')).data();
+      self.removeProducto(data[new Producto().posIdInPlain()]);
+      self.rePrintProductos();
+    });
+  }
+
+  rePrintProductos() {
+    $(this.tablaProductos).DataTable().clear().destroy();
+    $(this.tablaProductos + ' tbody').off('click', 'button');
+    this.printProductos();
+  }
+
+  save() {
+    localStorage.setItem('pedidos', JSON.stringify(this.pedidos));
+    localStorage.setItem('productos', JSON.stringify(this.productos));
+    localStorage.setItem('clientes', JSON.stringify(this.clientes));
+  }
+
+  load() {
+    this.loadProductos();
+    this.loadClientes();
+    this.loadPedidos();
+  }
+
+  loadPedidos() {
+    let pedidos = localStorage.getItem('pedidos');
+    if (pedidos) {
+      pedidos = JSON.parse(pedidos);
+      this.pedidos = pedidos.map((pedido, i) => {
+        return new Pedido(
+          new Producto(...Object.values(pedido.producto)),
+          pedido.cantidad,
+          new Cliente(...Object.values(pedido.cliente)),
+          i,
+        );
+      });
+    }
+  }
+
+  loadClientes() {
+    let clientes = localStorage.getItem('clientes');
+    if (clientes) {
+      clientes = JSON.parse(clientes);
+      this.clientes = clientes.map((cliente, i) => new Cliente(...Object.values(cliente), i));
+    }
+  }
+
+  loadProductos() {
+    let productos = localStorage.getItem('productos');
+    if (productos) {
+      productos = JSON.parse(productos);
+      this.productos = productos.map((producto, i) => new Producto(...Object.values(producto), i));
+    }
   }
 }
 
-const tienda = new Tienda();
-const maricarmen = new Cliente('Maricarmen', '663232323', 'lorem ipsum');
-tienda.addCliente(maricarmen);
-const pedido = new Pedido('Manzana', '1.5 kg', maricarmen);
-tienda.addPedido(pedido);
-tienda.printDatatable();
-
-
-setTimeout(() => {
-  const maricarmen = new Cliente('Maricarmen', '663232323', 'lorem ipsum');
-  tienda.addCliente(maricarmen);
-  const pedido = new Pedido('Manzana', '1.5 kg', maricarmen);
-  tienda.addPedido(pedido);
-  tienda.reprintDatatable();
-}, 3000);
-
 $(document).ready(function() {
+  main();
+});
 
-  $('#tablaClientes').DataTable({
+function main() {
+  const tienda = new Tienda();
+  tienda.load();
+  tienda.printPedidos();
+  tienda.printClientes();
+  tienda.printProductos();
+  select2ProductoNewPedido(tienda);
+  select2ClienteNewPedido(tienda);
+  const medidaSelect = select2NewProductMedida();
+  newProductAddClick(medidaSelect, tienda);
+  newClienteAddClick(tienda);
+  newRequestAddClick(tienda);
+  resumenClick(tienda);
+
+}
+
+function select2ProductoNewPedido(tienda) {
+  $('#newRequestProductSelect').select2({ width: '100%' });
+  tienda.productos.forEach((producto) => {
+    appendSelect2('#newRequestProductSelect', producto.nombre, producto.nombre);
+  });
+}
+
+function select2ClienteNewPedido(tienda) {
+  $('#newRequestClientSelect').select2({ width: '100%' });
+  tienda.clientes.forEach((cliente) => {
+    appendSelect2('#newRequestClientSelect', cliente.nombre, cliente.nombre);
+  });
+}
+
+function select2NewProductMedida() {
+  const medidaSelect = $('#newProductMedidaSelect');
+  medidaSelect.select2({ width: '100%' });
+  return medidaSelect;
+}
+
+function newProductAddClick(medidaSelect, tienda) {
+  const newProducto = $('#newProduct');
+  $('#newProductAddButton').on('click', () => {
+    if (!newProducto.val() || !medidaSelect.val()) {
+      Swal.fire('Error', 'Debes poner nombre y elegir la medida.', 'error');
+      return;
+    }
+    const producto = new Producto(newProducto.val(), medidaSelect.val());
+    tienda.addProducto(producto);
+    tienda.rePrintProductos();
+    newProducto.val(null);
+    changeSelect2(medidaSelect, 0);
+    appendSelect2('#newRequestProductSelect', producto.nombre, producto.nombre);
+  });
+}
+
+function newClienteAddClick(tienda) {
+  $('#newClienteAddButton').on('click', () => {
+    const nombreInput = $('#newClienteName');
+    const tlfInput = $('#newClienteTlf');
+    const direccionInput = $('#newClienteDireccion');
+    if (!nombreInput.val()) {
+      Swal.fire('Error', 'El cliente tiene que tener, como mínimo, nombre.', 'error');
+      return;
+    }
+    const cliente = new Cliente(nombreInput.val(), tlfInput.val(), direccionInput.val());
+    tienda.addCliente(cliente);
+    tienda.rePrintClientes();
+    appendSelect2('#newRequestClientSelect', cliente.nombre, cliente.nombre);
+    nombreInput.val(null);
+    tlfInput.val(null);
+    direccionInput.val(null);
+  });
+}
+
+function appendSelect2(selector, id, text) {
+  const data = {
+    id,
+    text,
+  };
+  const newOption = new Option(data.text, data.id, false, false);
+  $(selector).append(newOption);
+}
+
+function changeSelect2(selector, id) {
+  const jQselector = (typeof selector === 'string') ? $(selector) : selector;
+  jQselector.val(id);
+  jQselector.trigger('change');
+}
+
+function newRequestAddClick(tienda) {
+  $('#newRequestAddButton').on('click', () => {
+    const clienteInput = $('#newRequestClientSelect');
+    const productoInput = $('#newRequestProductSelect');
+    const cantidadInput = $('#newRequestQuantity');
+    if (!productoInput.val() || !cantidadInput.val()) {
+      Swal.fire('Error', 'Debes seleccionar el producto y la cantidad.', 'error');
+      return;
+    }
+    if (!/^[\d.,]+$/.test(cantidadInput.val())) {
+      Swal.fire('Error', 'La cantidad debe ser un número.', 'error');
+      return;
+    }
+    const cantidad = cantidadInput.val().replace(',', '.');
+    let foundCliente = tienda.clientes.find(c => c.nombre === clienteInput.val());
+    let foundProducto = tienda.productos.find(p => p.nombre === productoInput.val());
+    const pedido = new Pedido(foundProducto, cantidad, foundCliente);
+    tienda.addPedido(pedido);
+    tienda.rePrintPedidos();
+    changeSelect2(clienteInput, 0);
+    changeSelect2(productoInput, 0);
+    cantidadInput.val(null);
+  });
+}
+
+function resumenClick(tienda) {
+  $('#resumenButton').on('click', () => {
+    resumenPedidos(tienda);
+  });
+}
+
+function resumenPedidos(tienda) {
+  const resumen = $('#tablaResumen');
+  if (tienda.resumido) {
+    resumen.DataTable().clear().destroy();
+  }
+  tienda.resumido = true;
+  const resumenData = {};
+  tienda.pedidos.forEach(pedido => {
+    if (!resumenData[pedido.producto.nombre]) {
+      // SI NO EXISTE LA CLAVE LE DOY VALOR PARA EMPEZAR A SUMAR
+      resumenData[pedido.producto.nombre] = { cantidad: 0, medida: pedido.producto.medida };
+    }
+    resumenData[pedido.producto.nombre].cantidad += +pedido.cantidad;
+  });
+  const resumenDataSet = [];
+  Object.keys(resumenData).forEach(k => {
+    resumenDataSet.push([k, resumenData[k].cantidad + ' ' + resumenData[k].medida]);
+  });
+  resumen.DataTable({
+    paging: false,
     language: {
       url: 'language/datatable.json',
     },
-    data: tienda.clientesDataSet(),
+    data: resumenDataSet,
     columns: [
-      { title: 'Nombre' },
-      { title: 'Teléfono' },
-      { title: 'Direccion' },
-      {
-        title: 'Accion',
-        defaultContent:
-          '<button class="btn btn-sm btn-danger">Borrar</button>',
-      },
+      { title: 'Producto' },
+      { title: 'Cantidad' },
     ],
   });
-});
+}
