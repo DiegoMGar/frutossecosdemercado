@@ -30,7 +30,7 @@ class Cliente {
 class Producto {
   constructor(nombre, medida, id) {
     this.nombre = nombre || null;
-    this.medida = medida || 'Kilogramos';
+    this.medida = medida || 'kg';
     this.id = id || 0;
   }
 
@@ -78,6 +78,7 @@ class Tienda {
     this.clientes = [];
     this.pedidos = [];
     this.resumido = false;
+    this.loading = true;
   }
 
   addPedido(p) {
@@ -145,11 +146,11 @@ class Tienda {
       },
       data: this.pedidosDataset(),
       columns: [
-        { title: 'Producto' },
-        { title: 'Cantidad' },
-        { title: 'Cliente' },
-        { title: 'Tlf.' },
-        { title: 'Direccion' },
+        {title: 'Producto'},
+        {title: 'Cantidad'},
+        {title: 'Cliente'},
+        {title: 'Tlf.'},
+        {title: 'Direccion'},
         {
           title: 'Accion',
           data: null,
@@ -159,7 +160,7 @@ class Tienda {
       ],
     });
     const self = this;
-    $(this.tablaPedidos + ' tbody').on('click', 'button', function() {
+    $(this.tablaPedidos + ' tbody').on('click', 'button', function () {
       const data = table.row($(this).parents('tr')).data();
       self.removePedido(data[new Pedido().posIdInPlain()]);
       self.rePrintPedidos();
@@ -180,9 +181,9 @@ class Tienda {
       },
       data: this.clientesDataSet(),
       columns: [
-        { title: 'Nombre' },
-        { title: 'Teléfono' },
-        { title: 'Dirección' },
+        {title: 'Nombre'},
+        {title: 'Teléfono'},
+        {title: 'Dirección'},
         {
           title: 'Accion',
           data: null,
@@ -192,10 +193,11 @@ class Tienda {
       ],
     });
     const self = this;
-    $(this.tablaClientes + ' tbody').on('click', 'button', function() {
+    $(this.tablaClientes + ' tbody').on('click', 'button', function () {
       const data = table.row($(this).parents('tr')).data();
       self.removeCliente(data[new Cliente().posIdInPlain()]);
       self.rePrintClientes();
+      select2ClienteNewPedido(self, true);
     });
   }
 
@@ -213,8 +215,8 @@ class Tienda {
       },
       data: this.productosDataSet(),
       columns: [
-        { title: 'Nombre' },
-        { title: 'Medida' },
+        {title: 'Nombre'},
+        {title: 'Medida'},
         {
           title: 'Accion',
           data: null,
@@ -224,10 +226,11 @@ class Tienda {
       ],
     });
     const self = this;
-    $(this.tablaProductos + ' tbody').on('click', 'button', function() {
+    $(this.tablaProductos + ' tbody').on('click', 'button', function () {
       const data = table.row($(this).parents('tr')).data();
       self.removeProducto(data[new Producto().posIdInPlain()]);
       self.rePrintProductos();
+      select2ProductoNewPedido(self, true);
     });
   }
 
@@ -281,7 +284,7 @@ class Tienda {
   }
 }
 
-$(document).ready(function() {
+$(document).ready(function () {
   main();
 });
 
@@ -298,18 +301,26 @@ function main() {
   newClienteAddClick(tienda);
   newRequestAddClick(tienda);
   resumenClick(tienda);
-
+  tienda.loading = false;
 }
 
-function select2ProductoNewPedido(tienda) {
-  $('#newRequestProductSelect').select2({ width: '100%' });
+function select2ProductoNewPedido(tienda, forceClean = false) {
+  const select = $('#newRequestProductSelect');
+  if (forceClean) {
+    select.children().detach();
+  }
+  select.select2({width: '100%'});
   tienda.productos.forEach((producto) => {
-    appendSelect2('#newRequestProductSelect', producto.nombre, producto.nombre);
+    appendSelect2('#newRequestProductSelect', producto.nombre, `${producto.nombre} (${producto.medida})`);
   });
 }
 
-function select2ClienteNewPedido(tienda) {
-  $('#newRequestClientSelect').select2({ width: '100%' });
+function select2ClienteNewPedido(tienda, forceClean = false) {
+  const select = $('#newRequestClientSelect');
+  if (forceClean) {
+    select.children().detach();
+  }
+  select.select2({width: '100%'});
   tienda.clientes.forEach((cliente) => {
     appendSelect2('#newRequestClientSelect', cliente.nombre, cliente.nombre);
   });
@@ -317,7 +328,7 @@ function select2ClienteNewPedido(tienda) {
 
 function select2NewProductMedida() {
   const medidaSelect = $('#newProductMedidaSelect');
-  medidaSelect.select2({ width: '100%' });
+  medidaSelect.select2({width: '100%'});
   return medidaSelect;
 }
 
@@ -333,7 +344,7 @@ function newProductAddClick(medidaSelect, tienda) {
     tienda.rePrintProductos();
     newProducto.val(null);
     changeSelect2(medidaSelect, 0);
-    appendSelect2('#newRequestProductSelect', producto.nombre, producto.nombre);
+    appendSelect2('#newRequestProductSelect', producto.nombre, `${producto.nombre} (${producto.medida})`);
   });
 }
 
@@ -412,7 +423,7 @@ function resumenPedidos(tienda) {
   tienda.pedidos.forEach(pedido => {
     if (!resumenData[pedido.producto.nombre]) {
       // SI NO EXISTE LA CLAVE LE DOY VALOR PARA EMPEZAR A SUMAR
-      resumenData[pedido.producto.nombre] = { cantidad: 0, medida: pedido.producto.medida };
+      resumenData[pedido.producto.nombre] = {cantidad: 0, medida: pedido.producto.medida};
     }
     resumenData[pedido.producto.nombre].cantidad += +pedido.cantidad;
   });
@@ -427,8 +438,8 @@ function resumenPedidos(tienda) {
     },
     data: resumenDataSet,
     columns: [
-      { title: 'Producto' },
-      { title: 'Cantidad' },
+      {title: 'Producto'},
+      {title: 'Cantidad'},
     ],
   });
 }
