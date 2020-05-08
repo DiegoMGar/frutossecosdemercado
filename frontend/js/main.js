@@ -139,12 +139,13 @@ class Tienda {
   }
 
   printPedidos() {
+    const data = this.pedidosDataset();
     const table = $(this.tablaPedidos).DataTable({
-      paging: false,
+      paging: data.length > 10,
       language: {
         url: 'language/datatable.json',
       },
-      data: this.pedidosDataset(),
+      data: data,
       columns: [
         {title: 'Producto'},
         {title: 'Cantidad'},
@@ -174,12 +175,13 @@ class Tienda {
   }
 
   printClientes() {
+    const data = this.clientesDataSet();
     const table = $(this.tablaClientes).DataTable({
-      paging: false,
+      paging: data.length > 10,
       language: {
         url: 'language/datatable.json',
       },
-      data: this.clientesDataSet(),
+      data: data,
       columns: [
         {title: 'Nombre'},
         {title: 'Teléfono'},
@@ -208,12 +210,13 @@ class Tienda {
   }
 
   printProductos() {
+    const data = this.productosDataSet();
     var table = $(this.tablaProductos).DataTable({
-      paging: false,
+      paging: data.length > 10,
       language: {
         url: 'language/datatable.json',
       },
-      data: this.productosDataSet(),
+      data: data,
       columns: [
         {title: 'Nombre'},
         {title: 'Medida'},
@@ -431,8 +434,8 @@ function resumenPedidos(tienda) {
   Object.keys(resumenData).forEach(k => {
     resumenDataSet.push([k, resumenData[k].cantidad + ' ' + resumenData[k].medida]);
   });
-  resumen.DataTable({
-    paging: false,
+  const resumenConfig = {
+    paging: resumenDataSet.length > 15,
     language: {
       url: 'language/datatable.json',
     },
@@ -441,5 +444,9 @@ function resumenPedidos(tienda) {
       {title: 'Producto'},
       {title: 'Cantidad'},
     ],
-  });
+  };
+  if (resumenDataSet.length > 15) {
+    resumenConfig.lengthMenu = [[15, 30, 60, -1], [15, 30, 60, "All"]];
+  }
+  resumen.DataTable(resumenConfig);
 }
